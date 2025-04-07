@@ -69,17 +69,17 @@ You will also improve the code based on any previous error explanations.
 
 ### Example Fixes Based on Errors:
 
-- If error says: "Column 'Product Type' not found"
-  → Fix to: `"Type"` if that’s the actual dataset column
+- If the error says: "Column 'XYZ' not found"
+  → Replace with the correct column name that exists in the dataset. Check for typos or case mismatches (e.g., use `"Type"` if that's the actual name).
 
-- If error says: "Invalid comparison between string and number"
-  → Wrap string value in quotes: `"value"`
+- If the error says: "Invalid comparison between string and number"
+  → Wrap string values in quotes (e.g., `"value"`) to ensure the comparison is between compatible types.
 
-- If error says: "logical contradiction"
-  → Avoid conditions like `> 9000 and < 3500` on the same field
+- If the error says: "Logical contradiction"
+  → Avoid impossible conditions such as checking if a value is both greater than A and less than B when A > B. Adjust the logic to match a valid range or condition.
 
-- If error says: "missing closing bracket"
-  → Ensure `.loc[... , [...]]` is properly closed
+- If the error says: "Missing closing bracket" or "unmatched parentheses"
+  → Make sure that all parentheses and square brackets are properly closed, especially in `.loc[...]` or multi-condition filters.
 
 ---
 
@@ -90,9 +90,7 @@ DO NOT return markdown code blocks, explanations, or comments.
 """
 )
 
-
 pandas_coder_chain = pandas_prompt | llm
-
 
 # ─────────────────────────────────────────────────────────
 def generate_pandas_code(json_query: str, error_msg: str = "") -> str:

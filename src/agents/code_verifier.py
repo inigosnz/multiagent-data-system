@@ -1,17 +1,10 @@
 import pandas as pd
-import os
 import re
 from langchain_ollama import OllamaLLM
 from langchain.prompts import PromptTemplate
 
 # ─────────────────────────────────────────────────────────
-llm = OllamaLLM(model="qwen2.5-coder:7b") 
-
-# ─────────────────────────────────────────────────────────
-# Load the dataset
-data_folder = os.path.join(os.path.dirname(__file__), "../data")
-csv_file_path = os.path.abspath(os.path.join(data_folder, "IOT.csv"))
-df = pd.read_csv(csv_file_path)
+llm = OllamaLLM(model="qwen2.5-coder:7b")
 
 # ─────────────────────────────────────────────────────────
 # Clean Code 
@@ -65,22 +58,22 @@ You must help a developer understand why their code failed and what exactly to f
 ### Examples of Ideal Explanations:
 
 **Example 1 – SyntaxError (missing parenthesis):**
-> The error occurred in the expression `((df["Tool wear [min]"] > 200` because the closing parenthesis is missing. Python cannot evaluate the full condition until it’s properly closed. Add the missing `)` after the comparison to fix the structure.
+> The error occurred in the expression `((df["Some Column"] > 200` because the closing parenthesis is missing. Python cannot evaluate the full condition until it’s properly closed. Add the missing `)` after the comparison to fix the structure.
 
 **Example 2 – Logical contradiction:**
-> In your condition `(Power > 9000) & (Power < 3500)`, you're checking for a value to be both greater than 9000 and less than 3500 at the same time, which is not logically possible. Choose either the upper or lower bound depending on what failure mode you want to detect.
+> In your condition `(value > 9000) & (value < 3500)`, you're checking for a number to be both greater than 9000 and less than 3500 at the same time, which is not logically possible. Choose either the upper or lower bound depending on what you're filtering for.
 
 **Example 3 – Wrong operator:**
-> The snippet `df["Product ID"] = "M14860"` uses a single equals sign (`=`), which is invalid for comparisons. Use double equals `==` to check for equality in Pandas filter expressions.
+> The snippet `df["Some ID"] = "XYZ123"` uses a single equals sign (`=`), which is invalid for comparisons. Use double equals `==` to check for equality in Pandas filter expressions.
 
 **Example 4 – Column not found:**
-> The condition `df["Rotational Speed [rpm]"]` failed because the dataset contains the column `Rotational speed [rpm]` (with lowercase 's'). Pandas is case-sensitive — you must use the exact name from the dataset.
+> The condition `df["Incorrect Column Name"]` failed because the dataset contains a different column, such as `correct column name` (with a lowercase letter or different spacing). Pandas is case-sensitive — you must use the exact column name from the dataset.
 
 **Example 5 – Data type mismatch:**
-> You’re comparing the column `Product ID`, which contains strings, to a number: `123`. String comparisons need to be made using quotes, like `"123"`. Wrap the value in quotes to avoid the mismatch.
+> You’re comparing a column that contains strings to a number: `123`. String comparisons need to be made using quotes, like `"123"`. Wrap the value in quotes to avoid the mismatch.
 
 **Example 6 – Formula symbol issue:**
-> The condition `Torque [Nm] × Rotational speed [rpm]` uses a multiplication symbol (`×`) that is not valid in Python. Pandas requires `*` for multiplication. Replace the math symbol with the asterisk to fix it.
+> The expression `Column A × Column B` uses a multiplication symbol (`×`) that is not valid in Python. Pandas requires the asterisk `*` for multiplication. Replace non-code math symbols with proper Python syntax.
 
 ---
 
@@ -98,13 +91,11 @@ ONLY return the explanation and what exactly needs to be fixed.
 
 error_explainer_chain = error_explainer_prompt | llm
 
-
 # ─────────────────────────────────────────────────────────
 def explain_error_with_llm(code: str, error: str) -> str: 
     return error_explainer_chain.invoke({"code": code, "error": error}).strip()
 
-
-def verify_code(code: str) -> tuple[bool, str]:
+def verify_code(code: str, df: pd.DataFrame) -> tuple[bool, str]:
     """
     Executes code safely. Returns success flag and either an empty string or an LLM-based explanation of the error.
     """
