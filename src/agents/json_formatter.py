@@ -29,7 +29,9 @@ You must return a valid JSON object in the exact format described below.
 ---
 
 SYSTEM-WIDE REQUIREMENT:
-- Include **all actual dataset columns** in `select_fields`
+- Always when a query is asked, **all actual dataset columns** MUST be included in `select_fields`
+    - Check always before returning the JSON that this condition is satisfied.
+    - If not, add all actual dataset columns to `select_fields`.
 
 ---
 

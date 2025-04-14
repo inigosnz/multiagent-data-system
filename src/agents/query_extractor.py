@@ -26,6 +26,7 @@ GLOBAL RULES:
    - Operator: ...
    - Value: ...
 3. Only extract what the user asks for. Do not assume or infer anything else.
+4. Use the exact nameof the columns as it appears in the dataset description.
 
 ---
 
@@ -41,6 +42,12 @@ EXTRACTION RULES:
 
 1. Column Name Matching:
 - Match column names exactly as shown in the dataset description.
+    - Use the exact name as it appears in the dataset description.
+    - Do not add spaces or change the case of the column names.
+    - Do not use aliases or abbreviations.
+    - Do not use synonyms or similar terms.
+    - Do not use generic terms like "column" or "field".
+    - Do not use any other terms or phrases that do not match the exact column name.
 - Do not rename or modify columns.
 
 2. Field vs Formula:
