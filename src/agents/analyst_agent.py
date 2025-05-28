@@ -5,8 +5,7 @@ from langchain.prompts import PromptTemplate
 from agents.code_verifier import verify_code
 
 # ─────────────────────────────────────────────
-llm_coder = OllamaLLM(model="qwen2.5-coder:7b")
-llm_writer = OllamaLLM(model="deepseek-r1:7b")
+llm = OllamaLLM(model="qwen2.5-coder:7b")
 
 # ─────────────────────────────────────────────
 def clean_code(code: str) -> str:
@@ -80,55 +79,11 @@ Return ONLY valid Python code (no markdown).
 )
 
 
-code_chain = code_prompt | llm_coder
-
-# ─────────────────────────────────────────────
-# EXPLANATION WRITER
-writer_prompt = PromptTemplate(
-    input_variables=["metrics", "description", "question"],
-    template="""
-You are a data analyst writing a clear, factual summary of the extracted metrics in response to the user's question.
-
-The analysis includes metrics from two datasets:
-- `df`: the filtered data
-- `full_df`: the complete original dataset
-
----
-
-🧠 USER QUESTION:
-{question}
-
-📘 DATASET DESCRIPTION:
-{description}
-
-📊 METRICS (already computed in Python):
-{metrics}
-
----
-
-✅ GUIDELINES:
-- Only use the metrics explicitly shown above
-- Explain each metric’s meaning, and compare filtered vs full dataset:
-  - Indicate if values increased, decreased, or stayed the same
-  - Mention % changes or absolute differences where possible
-- Refer to column names exactly as written in the dataset
-- Do NOT:
-  - Suggest additional analysis or techniques (e.g. ANOVA, regression)
-  - Mention visualization methods
-  - Invent thresholds, logic, or statistical tests
-  - Add interpretations not directly supported by the metrics
-- If no meaningful difference is observed, state that clearly
-- Use short, factual paragraphs (no markdown or code)
-"""
-)
-
-
-
-writer_chain = writer_prompt | llm_writer
+code_chain = code_prompt | llm
 
 # ─────────────────────────────────────────────
 # MAIN FUNCTION TO COMBINE EVERYTHING
-def summarize_result_with_context(
+def analyze_data(
     result_df: pd.DataFrame,
     full_df: pd.DataFrame,
     dataset_description: str,
@@ -165,14 +120,9 @@ def summarize_result_with_context(
 
     formatted_metrics = format_metrics_output(raw_result)
 
-    explanation = writer_chain.invoke({
-        "metrics": formatted_metrics,
-        "description": dataset_description,
-        "question": user_question
-    }).strip()
 
     return {
         "code": code,
         "metrics": formatted_metrics,
-        "explanation": explanation
+        "raw_result": raw_result
     }

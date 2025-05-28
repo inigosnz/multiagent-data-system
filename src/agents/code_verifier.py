@@ -90,7 +90,7 @@ def explain_error_with_llm(code: str, error: str, description: str) -> str:
         "description": description
     }).strip()
 
-def verify_code(code: str, df: pd.DataFrame, full_df: pd.DataFrame, dataset_description: str) -> tuple[bool, str]:
+def verify_code(code: str, df: pd.DataFrame, full_df: pd.DataFrame, dataset_description: str) -> tuple[bool, object]:
     """
     Executes code safely. Returns (success: bool, result or error explanation).
     Uses LLM to explain if code fails. Supports both filtered and full datasets.
@@ -103,7 +103,7 @@ def verify_code(code: str, df: pd.DataFrame, full_df: pd.DataFrame, dataset_desc
     try:
         code = clean_code(code)
 
-        # Check for column existence in both df and full_df
+        # Check column existence
         used_cols = re.findall(r'df\["([^"]+)"\]', code) + re.findall(r'full_df\["([^"]+)"\]', code)
         all_cols = set(df.columns).union(set(full_df.columns))
         missing_cols = [col for col in used_cols if col not in all_cols]
@@ -111,9 +111,19 @@ def verify_code(code: str, df: pd.DataFrame, full_df: pd.DataFrame, dataset_desc
         if missing_cols:
             raise KeyError(f"The following columns do not exist in the dataset: {missing_cols}")
 
+        # Execute the code
         exec(code, {}, local_scope)
 
-        result = local_scope.get("result", "No variable named `result` found.")
+        # Verify that 'result' exists and is a valid object
+        if "result" not in local_scope:
+            raise NameError("No variable named `result` found in the code.")
+
+        result = local_scope["result"]
+
+        # Optionally validate type here (e.g., must be dict or DataFrame)
+        if not isinstance(result, (dict, pd.DataFrame, pd.Series)):
+            raise TypeError(f"The `result` variable is not a valid type. Found: {type(result)}")
+
         return True, result
 
     except Exception as e:
@@ -122,3 +132,4 @@ def verify_code(code: str, df: pd.DataFrame, full_df: pd.DataFrame, dataset_desc
 
         explanation = explain_error_with_llm(code, full_error, dataset_description)
         return False, explanation
+

@@ -21,15 +21,12 @@ def execute_pandas_code(code: str, df: pd.DataFrame) -> pd.DataFrame:
     local_scope = {"df": df.copy()}
     cleaned_code = clean_code(code)
 
-    if not cleaned_code.startswith("result ="):
-        cleaned_code = f"result = {cleaned_code}"
-
     try:
         exec(cleaned_code, {}, local_scope)
         result = local_scope.get("result")
-
         return result if isinstance(result, pd.DataFrame) else None
 
     except Exception as e:
         st.error(f"❌ Execution failed: {e}")
         return None
+

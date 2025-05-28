@@ -4,21 +4,7 @@ from langchain_ollama import OllamaLLM
 from langchain.prompts import PromptTemplate
 
 # ─────────────────────────────────────────────────────────
-llm = OllamaLLM(model="deepseek-r1:7b")
-
-# ─────────────────────────────────────────────────────────
-# Extract all column names from dataset description
-def extract_columns(dataset_description):
-    """Extracts column names from dataset description."""
-    lines = dataset_description.split("\n")
-    columns = []
-
-    for line in lines:
-        if "**" in line:
-            col_name = line.split("**")[1].split("**")[0]
-            columns.append(col_name)
-
-    return columns
+llm = OllamaLLM(model="qwen2.5-coder:7b")
 
 # ─────────────────────────────────────────────────────────
 json_prompt = PromptTemplate(
@@ -116,7 +102,7 @@ def extract_json_block(text):
 
 # ─────────────────────────────────────────────────────────
 def format_to_json(conditions, dataset_description):
-    """Converts extracted conditions into JSON format and adjusts select_fields intelligently."""
+    """Converts extracted conditions into JSON format."""
 
     formatted_json = json_formatting_chain.invoke({
         "conditions": conditions,
