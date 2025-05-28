@@ -56,15 +56,18 @@ multiagent-data-system/
 │
 ├── requirements.txt
 └── README.md
+```
 
 🚀 How to Run
 1. Install the dependencies:
 ```bash
 pip install -r requirements.txt
+```
 
 2. Launch the app:
 ```bash
 streamlit run src/main.py
+```
 
 ✅ Make sure Ollama is installed and running with required models: deepseek-r1:7b and qwen2.5-coder:7b.
 ⚙️ If you want to use different LLMs, you'll need to update the model names directly in each agent file (/agents/*.py) based on what your machine can run locally.
