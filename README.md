@@ -1,74 +1,85 @@
-# 🤖 Multi-Agent System for Data Interaction and Management
+# 🤖 Multi-Agent System for Conversational Data Analysis
 
-This project presents a comprehensive multi-agent system designed to enhance the way users interact with and manage complex datasets, particularly in industrial or IoT contexts. By combining state-of-the-art techniques from Big Data processing and Artificial Intelligence, the system aims to bridge the gap between human language and data manipulation — making advanced analytics accessible to users regardless of their technical background.
+This project implements a modular **multi-agent architecture** for natural language interaction with structured datasets — enabling users to analyze, explore, and reason about data **without writing a single line of code**.
 
-At the heart of the system lies a network of intelligent agents powered by Large Language Models (LLMs), which enable high-level natural language understanding and task automation. The primary objective is to allow users to write queries in plain English — such as “Show me all records with high torque and tool wear over 200 minutes” — and receive structured, accurate, and actionable results without writing a single line of code.
-
-The architecture is fully modular and agent-driven. Each agent in the system is responsible for a specific step in the pipeline:
-
-- **Query Extraction Agent** interprets the user’s input using domain-specific knowledge and dataset documentation, extracting structured filtering conditions.
-- **JSON Formatter Agent** translates those conditions into a standardized JSON format that other agents can process.
-- **Code Generation Agent** uses the structured query to produce executable Pandas code for filtering and retrieving relevant data.
-- **Code Verifier Agent** checks the generated code for correctness and safety, using an LLM to explain any issues in plain language.
-- **Code Execution Agent** securely runs the code and presents the results in a clean, responsive Streamlit interface.
-
-This multi-agent collaboration enables a complete natural-language-to-data pipeline. It allows users to perform sophisticated data analysis tasks — such as identifying failure patterns, filtering by formulas, or extracting KPIs — with just a sentence.
-
-Key design principles of the system include:
-- **Transparency**: All code and transformations are visible to the user.
-- **Scalability**: The architecture can support new agents (e.g., for SQL generation, document search, or charting) and adapt to new datasets.
-- **Privacy and Portability**: The use of locally hosted LLMs (via Ollama) ensures full offline capability and data confidentiality.
-- **User-Centered Design**: Built with Streamlit, the interface is minimalistic and intuitive, requiring zero technical expertise from end users.
-
-This platform is not only a proof of concept for agent-based data systems but also a functional toolkit for any environment where structured data needs to be queried, explored, and understood interactively. It is ideal for industrial monitoring, exploratory analysis, quality control, or any scenario where fast, flexible, and explainable data interaction is critical.
+Built with **Streamlit**, **Pandas**, and **locally hosted LLMs (via Ollama)**, the system allows users to upload their own datasets and descriptions, ask questions in plain English, and receive **code-backed, statistically grounded answers** in a conversational interface.
 
 ---
 
-## 📁 Project Structure
+## 🧠 What It Does
+
+Users can interact with their dataset using chat-like queries such as:
+
+> “Does Type L lead to higher process temperature?”  
+> “Show me all samples with torque above 50 Nm and tool wear below 100.”
+
+The system breaks down and solves this request through a team of specialized LLM agents:
+
+- Analyst Agent – Generates Python code from structured logic, executes it, extracts statistical metrics, and explains the analysis.
+- Question Solver Agent – Interprets the analysis, reasons through it, and gives a final answer.
+- Query Extraction Agent – Understands natural language and converts it into logical conditions using dataset context.
+- JSON Formatter Agent – Converts the logic into standardized JSON.
+- Pandas Coder Agent – Generates executable Pandas code from the structured query.
+- Code Verifier Agent – Validates code and retries with improvements based on LLM insights.
+- Code Execution Agent – Executes safe Pandas code and returns filtered results.
+
+---
+
+## 💡 Core Features
+
+✅ Conversational interface powered by intelligent agents  
+✅ Natural language to query → reasoning → final answer  
+✅ Visual debug of generated code, metrics, and logic  
+✅ Iterative retries when code generation fails  
+✅ Supports verbose reasoning mode toggle  
+✅ Locally hosted, privacy-preserving LLMs (via Ollama)  
+✅ Streamlit app with dual-pane chat and data view  
+✅ Modular agent logic for extension (SQL, charting, etc.)
+
+---
+
+## 🗂️ Project Structure
+
 ```bash
 multiagent-data-system/
 │
-├── src/                             # Main application source
-│   ├── agents/                      # Modular LLM agent logic
+├── src/
+│   ├── agents/
+│   │   ├── analyst_agent.py
+│   │   ├── question_solver.py
 │   │   ├── code_executor.py
 │   │   ├── code_verifier.py
 │   │   ├── json_formatter.py
 │   │   ├── pandas_coder.py
 │   │   └── query_extractor.py
-│   │
-│   ├── data/                        # Dataset and documentation
-│   │   ├── IOT.csv
-│   │   ├── dataset_description.txt
-│   │   └── Technical_documentation.txt
-│   │
-│   └── main.py                      # Streamlit UI entry point
+│   ├── main.py
 │
-├── .gitignore                       # Git ignore rules
-├── requirements.txt                 # Python dependencies
-└── README.md                        # Project documentation
-```
----
+├── requirements.txt
+└── README.md
 
-## 🚀 How to Run
-
-### 1. Install the dependencies:
-
+🚀 How to Run
+1. Install the dependencies:
+```bash
 pip install -r requirements.txt
 
-### 2. Launch the app:
-
+2. Launch the app:
+```bash
 streamlit run src/main.py
 
-Make sure you have a local Ollama server running with the required models (e.g., deepseek-r1:7b, qwen2.5-coder:7b).
+✅ Make sure Ollama is installed and running with required models: deepseek-r1:7b and qwen2.5-coder:7b.
+⚙️ If you want to use different LLMs, you'll need to update the model names directly in each agent file (/agents/*.py) based on what your machine can run locally.
+🌐 If you prefer to use external APIs (e.g., OpenAI), simply replace the llm = Ollama(...) definition in each agent file with the API-specific wrapper (e.g., llm = OpenAI(model="gpt-4", api_key="...")).
 
-## 🧠 Key Features
-Natural language query interpretation
+📌 Example Use Cases
+Exploratory data analysis in industrial/IoT settings
 
-Condition extraction and logical formatting (in JSON)
+Root cause analysis from failure logs
 
-Automatic generation of valid Pandas code
+KPI evaluation and hypothesis testing
 
-LLM-powered error detection and explanations
+Natural language dashboards
 
-Safe code execution and interactive result display
+Embedded analytics for non-technical users
 
+📫 Contact
+Made by @inigosnz – feel free to reach out or contribute!
