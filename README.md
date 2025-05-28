@@ -70,8 +70,11 @@ streamlit run src/main.py
 ```
 
 ✅ Make sure Ollama is installed and running with required models: deepseek-r1:7b and qwen2.5-coder:7b.
+
 ⚙️ If you want to use different LLMs, you'll need to update the model names directly in each agent file (/agents/*.py) based on what your machine can run locally.
+
 🌐 If you prefer to use external APIs (e.g., OpenAI), simply replace the llm = Ollama(...) definition in each agent file with the API-specific wrapper (e.g., llm = OpenAI(model="gpt-4", api_key="...")).
+
 
 📌 Example Use Cases
 Exploratory data analysis in industrial/IoT settings
