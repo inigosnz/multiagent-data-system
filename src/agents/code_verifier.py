@@ -17,11 +17,13 @@ def clean_code(code: str) -> str:
 
 # ─────────────────────────────────────────────────────────
 error_explainer_prompt = PromptTemplate(
-    input_variables=["code", "error"],
+    input_variables=["code", "error", "description"],
     template="""
 You are an expert Python assistant specializing in Pandas DataFrame filtering.
 
 You must help a developer understand why their code failed and what exactly to fix — without returning code.
+
+Use the provided dataset description to verify column names, units, and meaning. Do not guess column names — match them exactly as described.
 
 ---
 
@@ -30,6 +32,9 @@ You must help a developer understand why their code failed and what exactly to f
 
 ## Error Message:
 "{error}"
+
+## Dataset Description (column names and definitions):
+{description}
 
 ---
 
@@ -57,54 +62,74 @@ You must help a developer understand why their code failed and what exactly to f
 
 ### Examples of Ideal Explanations:
 
-**Example 1 – SyntaxError (missing parenthesis):**
-> The error occurred in the expression `((df["Some Column"] > 200` because the closing parenthesis is missing. Python cannot evaluate the full condition until it’s properly closed. Add the missing `)` after the comparison to fix the structure.
+**Example – Column not found:**
+> The condition `df["Incorrect Column Name"]` failed because the dataset contains the column `"Torque [Nm]"`. Pandas is case-sensitive — use the exact column name as described.
 
-**Example 2 – Logical contradiction:**
-> In your condition `(value > 9000) & (value < 3500)`, you're checking for a number to be both greater than 9000 and less than 3500 at the same time, which is not logically possible. Choose either the upper or lower bound depending on what you're filtering for.
+**Example – Data type mismatch:**
+> You're comparing a column that contains strings to a number: `123`. This causes a type error — wrap the value in quotes if it's a string.
 
-**Example 3 – Wrong operator:**
-> The snippet `df["Some ID"] = "XYZ123"` uses a single equals sign (`=`), which is invalid for comparisons. Use double equals `==` to check for equality in Pandas filter expressions.
-
-**Example 4 – Column not found:**
-> The condition `df["Incorrect Column Name"]` failed because the dataset contains a different column, such as `correct column name` (with a lowercase letter or different spacing). Pandas is case-sensitive — you must use the exact column name from the dataset.
-
-**Example 5 – Data type mismatch:**
-> You’re comparing a column that contains strings to a number: `123`. String comparisons need to be made using quotes, like `"123"`. Wrap the value in quotes to avoid the mismatch.
-
-**Example 6 – Formula symbol issue:**
-> The expression `Column A × Column B` uses a multiplication symbol (`×`) that is not valid in Python. Pandas requires the asterisk `*` for multiplication. Replace non-code math symbols with proper Python syntax.
+**Example – Logical contradiction:**
+> The condition `(value > 9000) & (value < 3500)` is logically impossible — revise the logic.
 
 ---
 
 Precision Matters:
-- Be surgical and direct.
-- Point out the **exact fix** to apply, even if it's as small as switching `or` to `|`.
-
-DO NOT:
-- Return any Python or Pandas code.
-- Use markdown or code blocks.
-
-ONLY return the explanation and what exactly needs to be fixed.
+- Refer to the **exact columns** described in the dataset.
+- Be direct and clear — no code blocks or markdown.
+- ONLY return the explanation and what exactly needs to be fixed.
 """
 )
 
 error_explainer_chain = error_explainer_prompt | llm
 
 # ─────────────────────────────────────────────────────────
-def explain_error_with_llm(code: str, error: str) -> str: 
-    return error_explainer_chain.invoke({"code": code, "error": error}).strip()
+def explain_error_with_llm(code: str, error: str, description: str) -> str: 
+    return error_explainer_chain.invoke({
+        "code": code,
+        "error": error,
+        "description": description
+    }).strip()
 
-def verify_code(code: str, df: pd.DataFrame) -> tuple[bool, str]:
+def verify_code(code: str, df: pd.DataFrame, full_df: pd.DataFrame, dataset_description: str) -> tuple[bool, object]:
     """
-    Executes code safely. Returns success flag and either an empty string or an LLM-based explanation of the error.
+    Executes code safely. Returns (success: bool, result or error explanation).
+    Uses LLM to explain if code fails. Supports both filtered and full datasets.
     """
-    local_scope = {"df": df.copy()}
+    local_scope = {
+        "df": df.copy(),             
+        "full_df": full_df.copy(),   
+    }
+
     try:
         code = clean_code(code)
-        if not code.startswith("result ="):
-            code = f"result = {code}"
+
+        # Check column existence
+        used_cols = re.findall(r'df\["([^"]+)"\]', code) + re.findall(r'full_df\["([^"]+)"\]', code)
+        all_cols = set(df.columns).union(set(full_df.columns))
+        missing_cols = [col for col in used_cols if col not in all_cols]
+
+        if missing_cols:
+            raise KeyError(f"The following columns do not exist in the dataset: {missing_cols}")
+
+        # Execute the code
         exec(code, {}, local_scope)
-        return True, ""
+
+        # Verify that 'result' exists and is a valid object
+        if "result" not in local_scope:
+            raise NameError("No variable named `result` found in the code.")
+
+        result = local_scope["result"]
+
+        # Optionally validate type here (e.g., must be dict or DataFrame)
+        if not isinstance(result, (dict, pd.DataFrame, pd.Series)):
+            raise TypeError(f"The `result` variable is not a valid type. Found: {type(result)}")
+
+        return True, result
+
     except Exception as e:
-        return False, explain_error_with_llm(code, str(e))
+        error_type = type(e).__name__
+        full_error = f"{error_type}: {str(e)}"
+
+        explanation = explain_error_with_llm(code, full_error, dataset_description)
+        return False, explanation
+

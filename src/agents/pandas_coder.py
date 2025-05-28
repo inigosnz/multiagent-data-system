@@ -65,6 +65,12 @@ You will also improve the code based on any previous error explanations.
    - Return more than one code block
    - Use undefined variables or missing columns
 
+6. NEVER create a new DataFrame with sample data. You must use the existing `df` provided.
+
+7. Assume `df` is already loaded with the correct dataset. Do not redefine or initialize `df`.
+
+8. DO NOT use any hardcoded or fake sample data.
+
 ---
 
 ### Example Fixes Based on Errors:
@@ -83,10 +89,12 @@ You will also improve the code based on any previous error explanations.
 
 ---
 
-Output:
-Return a single, clean Pandas expression (as one line or properly indented multi-line), using valid syntax and readable structure.
-
-DO NOT return markdown code blocks, explanations, or comments.
+Output Requirement:
+- Your final line MUST assign the filtered result to a variable named `result`.
+- Example: `result = df.loc[...]` or `result = df[...]`
+- You may define intermediate variables (like `condition = ...`) above it if needed.
+- Do NOT return code without the assignment to `result`.
+- Do NOT include markdown, explanations, or comments — only valid Python code.
 """
 )
 
