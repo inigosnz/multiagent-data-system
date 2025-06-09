@@ -90,7 +90,9 @@ Embedded analytics for non-technical users
 📫 Contact
 Made by @inigosnz – feel free to reach out or contribute!
 
-📹DEMO
+---
+
+## 📹DEMO
 
 https://github.com/user-attachments/assets/9f24b55d-8ecd-4ccc-a4f7-c3c2754cc011
 
